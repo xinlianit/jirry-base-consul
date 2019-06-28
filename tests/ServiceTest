@@ -39,7 +39,7 @@ if (!in_array($command, $commands)) {
 
 // http 请求配置
 $httpConfig = [
-    'base_uri' => 'http://localhost:8500',
+    'base_uri' => $options['host'] ?? 'http://localhost:8500',
     'timeout'  => 30,
 ];
 
