@@ -2,14 +2,6 @@
 
 PHP Consul 助手
 
-## Installation
-
-Install Jirry/Consul
-
-```bash
-$ composer require Jirry/Consul
-```
-
 ## Basic Usage
 
 ### 单元测试
@@ -21,7 +13,7 @@ $ php tests/ServerTest --command=${command}
 composer.json 文件 "repositories" 段增加 "jirry"
 ```json
 {
-  ...
+  "...": "...",
   "repositories": {
     "packagist": {
       "type": "composer",
@@ -70,3 +62,5 @@ $ php composer require jirry/consul
 
 ## service-id 服务ID
 例：--service-id=user.services.jirry.com
+
+
