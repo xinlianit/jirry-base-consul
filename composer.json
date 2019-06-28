@@ -1,0 +1,31 @@
+{
+    "name": "jirry/consul",
+    "keywords": [
+        "consul"
+    ],
+    "description": "consul for php",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "jirry",
+            "email": "jirenyoucn@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=7.1",
+        "guzzlehttp/guzzle": "~6.0"
+    },
+    "require-dev": {},
+    "autoload": {
+        "psr-4": {
+            "Jirry\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.0-dev"
+        }
+    }
+}

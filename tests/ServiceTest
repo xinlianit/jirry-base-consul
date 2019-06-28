@@ -1,0 +1,108 @@
+#!/usr/bin/env php
+<?php declare(strict_types=1);
+/**
+ * Consul 服务注册发现单元测试
+ *
+ * @author   jirry <jirenyoucn@gmail.com>
+ * @datetime 2019/6/28 11:01
+ */
+
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Jirry\Consul\Service;
+
+// CLI 参数
+$options = getopt('', [
+    'command:',
+    'host:',
+    'service:',
+    'service-id:'
+]);
+
+// 请求命令
+$command = strtolower($options['command'] ?? 'status');
+
+// 命令列表
+$commands = [
+    'services',     // 服务列表
+    'service',      // 服务信息
+    'register',     // 服务注册
+    'deregister',   // 服务注销
+];
+
+// 检测命令
+if (!in_array($command, $commands)) {
+    echo "Runtime: php tests/ServiceTest --command={" . implode('|', $commands) . "}\n";
+    die;
+}
+
+// http 请求配置
+$httpConfig = [
+    'base_uri' => 'http://localhost:8500',
+    'timeout'  => 30,
+];
+
+// http 请求选项
+$httpOptions = [
+//    'http_errors' => false
+];
+
+// Consul 服务客户端
+$consulService = Service::client($httpConfig, $httpOptions);
+
+// 获取服务列表
+if ($command == 'services') {
+    $result = $consulService->getServices();
+}
+
+// 命令路由
+switch ($command) {
+    // 获取服务列表
+    case 'services':
+        $result = $consulService->getServices();
+        break;
+
+    // 获取服务信息
+    case 'service':
+        $serviceId = $options['service-id'] ?? '';
+        $result    = $consulService->getService($serviceId);
+        break;
+
+    // 服务注册
+    case 'register':
+        // 健康检查
+        $checkId       = 'baidu-check-001';
+        $checkName     = 'baidu-check';
+        $checkUrl      = 'http://www.baidu.com';
+        $checkInterval = 10;
+        $checkTimeout  = 3;
+        $checkHttp     = $consulService->checkHttpPackage($checkId, $checkName, $checkUrl, $checkInterval, $checkTimeout);
+
+        // 服务注册
+        $serviceId      = 'baidu-001';
+        $serviceName    = 'baidu';
+        $serviceAddress = 'www.baidu.com';
+        $servicePort    = 80;
+        $serviceTags    = ['baidu'];
+        $serviceChecks  = [$checkHttp];
+        $serviceBaidu   = $consulService->servicePackage($serviceId, $serviceName, $serviceAddress, $servicePort, $serviceTags, $serviceChecks);
+
+        $service = $options['service'] ?? $serviceBaidu;
+        $result  = $consulService->registerService($service);
+        break;
+
+    // 服务注销
+    case 'deregister':
+        $serviceId = $options['service-id'] ?? '';
+        $result    = $consulService->deregisterService($serviceId);
+        break;
+
+    default:
+        $result = null;
+        break;
+}
+
+// 打印结果
+print_r($result);
+die;
