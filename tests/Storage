@@ -1,0 +1,149 @@
+#!/usr/bin/env php
+<?php declare(strict_types=1);
+/**
+ * Consul 配置中心单元测试
+ *
+ * @author   jirry <jirenyoucn@gmail.com>
+ * @datetime 2019/6/28 11:01
+ */
+
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Jirry\Consul\Storage;
+
+// CLI 参数
+$options = getopt('', [
+    'command:',     // 命令
+    'host:',    // Consul 主机
+    'datacenter:',   // 数据中心
+    'namespace:',   // 名称空间
+    'key:', // Key 名
+    'detaild:', // 明细
+    'separator:',    // 定界符
+    'value:',    // Value
+    'modify-index:',    // 修改索引
+]);
+
+// 请求命令
+$command = strtolower($options['command'] ?? 'status');
+
+// 命令列表
+$commands = [
+    'all',     // 获取所有 Key/Value
+    'namespace', // 获取名称空间下所有 Key/Value
+    'keynames', // 获取 Key 名
+    'get',  // 获取 Key/Value
+    'set',  // 设置 Key
+    'update',   // 更新 Key
+    'delete',   // 删除 Key
+    'deletes',   // 删除多个 Key
+];
+
+// 检测命令
+if (!in_array($command, $commands)) {
+    echo "Runtime: php tests/ServiceTest --command={" . implode('|', $commands) . "}\n";
+    die;
+}
+
+// http 请求配置
+$httpConfig = [
+    'base_uri' => $options['host'] ?? 'http://localhost:8500',
+    'timeout'  => 30,
+];
+
+// http 请求选项
+$httpOptions = [
+//    'http_errors' => false    // 是否抛出http错误
+];
+
+// Consul 服务客户端
+/**
+ * @var Jirry\Consul\Storage $consulStorage
+ */
+$consulStorage = Storage::connect($httpConfig)->setOptions($httpOptions);
+
+
+// 命令路由
+switch ($command) {
+    // 获取所有 Key/Val
+    case 'all':
+        // 数据中心
+        $datacenter = (string)($options['datacenter'] ?? '');
+        $result     = $consulStorage->datacenter($datacenter)->getAllKeys();
+        break;
+    // 获取名称空间下所有 Key/Value
+    case 'namespace':
+        // 数据中心
+        $namespace  = (string)($options['namespace'] ?? '');
+        $datacenter = (string)($options['datacenter'] ?? '');
+        $result     = $consulStorage->datacenter($datacenter)->getNameSpaceKeys($namespace);
+        break;
+
+    // 获取所有 key 名
+    case 'keynames':
+        $namespace  = (string)($options['namespace'] ?? '');   // 名称空间
+        $separator  = (string)($options['separator'] ?? '');   // key 定界符
+        $datacenter = (string)($options['datacenter'] ?? '');  // 数据中心
+
+        $result = $consulStorage->datacenter($datacenter)->getAllKeyNames($namespace, $separator);
+        break;
+
+    // 获取 Key/Value
+    case 'get':
+        $key        = (string)($options['key'] ?? ''); // Key 名
+        $detaild    = (string)($options['detaild'] ?? '');    // 是否明细
+        $datacenter = (string)($options['datacenter'] ?? ''); // 数据中心
+
+        if ($detaild) {
+            $result = $consulStorage->datacenter($datacenter)->getKeyDetaild($key);
+        } else {
+            $result = $consulStorage->datacenter($datacenter)->getKey($key);
+        }
+        break;
+
+    // 设置 Key
+    case 'set':
+        $datacenter = (string)($options['datacenter'] ?? ''); // 数据中心
+        $key        = (string)($options['key'] ?? ''); // Key
+        $value      = (string)($options['value'] ?? '');    // Value
+        $namespace  = (string)($options['namespace'] ?? '');    // 名称空间
+
+        $result = $consulStorage->datacenter($datacenter)->setKey($key, $value, $namespace);
+        break;
+
+    // 更新 Key
+    case 'update':
+        $datacenter  = (string)($options['datacenter'] ?? ''); // 数据中心
+        $key         = (string)($options['key'] ?? ''); // Key
+        $value       = (string)($options['value'] ?? '');    // Value
+        $modifyIndex = (int)($options['modify-index'] ?? 0);    // ModifyIndex 修改索引
+        $namespace   = (string)($options['namespace'] ?? '');    // 名称空间
+
+        $result = $consulStorage->datacenter($datacenter)->updateKey($key, $value, $modifyIndex, $namespace);
+        break;
+
+    // 删除 Key
+    case 'delete':
+        $datacenter = (string)($options['datacenter'] ?? ''); // 数据中心
+        $key        = (string)($options['key'] ?? ''); // Key
+        $namespace  = (string)($options['namespace'] ?? '');    // 名称空间
+
+        $result = $consulStorage->datacenter($datacenter)->deleteKey($key, $namespace);
+        break;
+
+    // 删除多个 Key
+    case 'deletes':
+        $datacenter = (string)($options['datacenter'] ?? ''); // 数据中心
+        $namespace  = (string)($options['namespace'] ?? '');    // 名称空间
+
+        $result = $consulStorage->datacenter($datacenter)->deleteKeys($namespace);
+        break;
+    default:
+        $result = null;
+        break;
+}
+
+// 打印结果
+print_r($result);
+die;

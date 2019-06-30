@@ -31,17 +31,21 @@ composer.json 文件 "repositories" 段增加 "jirry"
 $ php composer require jirry/consul
 ```
 
-## command 参数
+## command 命令
+例：--command=services
 
 - services 获取服务列表
 - service 获取服务信息
 - register 服务注册
 - deregister 服务注销
+- health 服务发现
 
-## host Consul 主机地址
+## host Consul主机地址
 例：--host=http://localhost:8500
 
 ## service 服务配置
+例：--service='{}'
+
 ```json
 {
     "id": "user.services.jirry.com",
@@ -61,6 +65,9 @@ $ php composer require jirry/consul
 ```
 
 ## service-id 服务ID
-例：--service-id=user.services.jirry.com
+例：--service-id=base.service.jirry.com
+
+## service-name 服务名称
+例：--service-name=base.service.jirry.com
 
 

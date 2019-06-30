@@ -14,24 +14,34 @@ use GuzzleHttp\Client;
 class Consul
 {
     /**
-     * 服务列表
+     * Agent 代理API
+     * REST_SERVICES: 服务列表
+     * REST_SERVICE: 服务信息
+     * REST_REGISTER: 服务注册
+     * REST_DEREGISTER: 服务注销
+     * REST_HEALTH_SERVICE: 服务发现
      */
-    const REST_SERVICES = 'v1/agent/services';
+    const REST_SERVICES       = 'v1/agent/services';
+    const REST_SERVICE        = 'v1/agent/service';
+    const REST_REGISTER       = 'v1/agent/service/register';
+    const REST_DEREGISTER     = 'v1/agent/service/deregister';
+    const REST_HEALTH_SERVICE = 'v1/health/service';
 
     /**
-     * 服务信息
+     * Storage 存储API
+     * REST_STORAGE_KEY_ALL: 所有 Key/Value
+     * REST_STORAGE_KEY_NAMESPACE: 名称空间所有 Key/Value
+     * REST_STORAGE_KEY: 单个Key/Value
+     * REST_STORAGE_KEY_NAMES: 所有 Key
+     * REST_STORAGE_KEY_SET: 设置 Key
+     * REST_STORAGE_KEY_DELETE: 删除 Key
      */
-    const REST_SERVICE = 'v1/agent/service';
-
-    /**
-     * 服务注册
-     */
-    const REST_REGISTER = 'v1/agent/service/register';
-
-    /**
-     * 服务注销
-     */
-    const REST_DEREGISTER = 'v1/agent/service/deregister';
+    const REST_STORAGE_KEY_ALL       = 'v1/kv/?recurse';
+    const REST_STORAGE_KEY_NAMESPACE = 'v1/kv';
+    const REST_STORAGE_KEY           = self::REST_STORAGE_KEY_NAMESPACE;
+    const REST_STORAGE_KEY_NAMES     = self::REST_STORAGE_KEY_NAMESPACE;
+    const REST_STORAGE_KEY_SET       = self::REST_STORAGE_KEY_NAMESPACE;
+    const REST_STORAGE_KEY_DELETE    = self::REST_STORAGE_KEY_NAMESPACE;
 
     /**
      * Http 客户端
@@ -41,13 +51,53 @@ class Consul
     protected static $httpClient;
 
     /**
+     * 请求选项
+     *
+     * @var array
+     */
+    protected static $options = [];
+
+    /**
+     * 数据中心
+     *
+     * @var string|null
+     */
+    protected $dc;
+
+    /**
      * Consul constructor.
      *
      * @param array $httpConfig
      */
-    public function __construct(array $httpConfig = [])
+    protected function __construct(array $httpConfig = [])
     {
         self::$httpClient = new Client($httpConfig);
+    }
+
+    /**
+     * 设置请求选项
+     *
+     * @param array $options 选项参数
+     *
+     * @return $this
+     */
+    public function setOptions(array $options = [])
+    {
+        self::$options = $options;
+        return $this;
+    }
+
+    /**
+     * 数据中心
+     *
+     * @param string|null $datacenter 数据中心名称
+     *
+     * @return $this
+     */
+    public function datacenter(string $datacenter = null)
+    {
+        $this->dc = $datacenter;
+        return $this;
     }
 
     /**

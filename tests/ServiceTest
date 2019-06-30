@@ -17,7 +17,8 @@ $options = getopt('', [
     'command:',
     'host:',
     'service:',
-    'service-id:'
+    'service-id:',
+    'service-name:'
 ]);
 
 // 请求命令
@@ -29,6 +30,7 @@ $commands = [
     'service',      // 服务信息
     'register',     // 服务注册
     'deregister',   // 服务注销
+    'health',       // 服务发现
 ];
 
 // 检测命令
@@ -50,11 +52,6 @@ $httpOptions = [
 
 // Consul 服务客户端
 $consulService = Service::client($httpConfig, $httpOptions);
-
-// 获取服务列表
-if ($command == 'services') {
-    $result = $consulService->getServices();
-}
 
 // 命令路由
 switch ($command) {
@@ -96,6 +93,16 @@ switch ($command) {
     case 'deregister':
         $serviceId = $options['service-id'] ?? '';
         $result    = $consulService->deregisterService($serviceId);
+        break;
+
+    // 服务发现
+    case 'health':
+        $serviceName = $options['service-name'] ?? '';
+        // 获取指定字段
+//        $resultDetail = ['ID', 'Address', 'Port'];
+        $resultDetail = [];
+//        $result = $consulService->getHealthServices($serviceName, 1, 'service', $resultDetail);
+        $result = $consulService->getHealthService($serviceName, 1, 'service', $resultDetail);
         break;
 
     default:
